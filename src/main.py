@@ -1,41 +1,37 @@
 # src/main.py
-
-"""
-Main pipeline for Data Mining project.
-Steps:
-1. Load raw data
-2. Simple preprocessing
-3. Train model
-4. Evaluate model
-"""
-
-from data_loader import load_raw_data
-from model import train_model, evaluate_model
-from utils import print_classification_report, plot_confusion_matrix
+from src import config
+from src.data_loader import load_raw_data
+from src.utils import preprocess_data, run_eda_visualizations, evaluate_models_text, plot_comparison_results
+from src.model import train_and_save_model
 
 def main():
-    # 1. Load data
-    df = load_raw_data("data/raw/sample.csv")  # Ganti sesuai nama file dataset
+    """Pipeline utama proyek Data Mining."""
+    print("="*60)
+    print("      MEMULAI PIPELINE ANALISIS BUG PREDICTION (v2.0)")
+    print("="*60)
+
+    # Langkah 1: Muat Data Mentah
+    raw_df = load_raw_data()
     
-    if df is None:
-        print("Dataset tidak ditemukan.")
-        return
+    # Langkah 2: Exploratory Data Analysis (EDA)
+    run_eda_visualizations(raw_df)
 
-    # 2. Preprocessing sederhana
-    df = df.dropna()
-    if "target" not in df.columns:
-        print("Kolom 'target' tidak ditemukan dalam dataset.")
-        return
+    # Langkah 3: Preprocessing Data
+    X_train, X_test, y_train, y_test = preprocess_data(raw_df)
+    
+    # Langkah 4: Latih Semua Model
+    trained_models = {}
+    for model_name in config.MODELS_TO_RUN:
+        model = train_and_save_model(X_train, y_train, model_name)
+        trained_models[model_name] = model
+    
+    # Langkah 5: Evaluasi Semua Model
+    evaluate_models_text(trained_models, X_test, y_test)
+    plot_comparison_results(trained_models, X_test, y_test)
 
-    X = df.drop("target", axis=1)
-    y = df["target"]
-
-    # 3. Train & evaluate model
-    model, y_test, y_pred = train_model(X, y)
-
-    # 4. Evaluation
-    print_classification_report(y_test, y_pred)
-    plot_confusion_matrix(y_test, y_pred)
+    print("\n" + "="*60)
+    print("             PIPELINE SELESAI DENGAN SUKSES")
+    print("="*60)
 
 if __name__ == "__main__":
     main()

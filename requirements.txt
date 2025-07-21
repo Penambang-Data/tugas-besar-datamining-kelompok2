@@ -13,3 +13,4 @@ jupyter
 # Optional (advanced modeling & visualization)
 xgboost
 plotly
+joblib
